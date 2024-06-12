@@ -1,5 +1,4 @@
 import os
-import joblib
 import json
 import fpdf
 
@@ -30,25 +29,22 @@ class PDFReport(fpdf.FPDF):
 def add_classification_report_table(pdf, report):
     pdf.set_font('Arial', 'B', 10)
 
-    # Get all unique metric names (to handle missing metrics in some classes)
     all_metrics = set()
     for _, metrics in report.items():
         all_metrics.update(metrics.keys())
 
-    # Header row
     for col in all_metrics:
         pdf.cell(40, 10, col, 1, 0, 'C')
     pdf.ln()
 
-    # Data rows (handling missing metrics gracefully)
     for index, metrics in report.items():
         pdf.set_font('Arial', '', 10)
         pdf.cell(40, 10, index, 1, 0, 'C')
         for col in all_metrics:
-            value = metrics.get(col, "N/A")  # Use "N/A" if metric is missing
-            if isinstance(value, dict) and 'precision' in value:  # Handle nested dicts
-                value = value['precision']  # Extract precision from support dict
-            pdf.cell(40, 10, f"{value:.4f}", 1, 0, 'C')  # Format as float if possible
+            value = metrics.get(col, "N/A")  
+            if isinstance(value, dict) and 'precision' in value:  
+                value = value['precision']  
+            pdf.cell(40, 10, f"{value:.4f}", 1, 0, 'C')  
         pdf.ln()
 
 
@@ -73,9 +69,8 @@ def generate_report(results):
     for result in results:
         model = result['model']
         accuracy = result['accuracy']
-        report_dict = result['report']  # This is the JSON-like dict
+        report_dict = result['report']  
 
-        # Convert JSON-like dict back to nested dict (DataFrame is not needed here)
         report = {}
         for key, value in report_dict.items():
             report[key] = {k: v for k, v in value.items()} 
@@ -90,7 +85,6 @@ def generate_report(results):
     pdf.chapter_title('6. Future Work')
     pdf.chapter_body('Future work could explore the use of more advanced machine learning models, such as ensemble methods or neural networks, to further improve prediction accuracy. Additionally, incorporating macroeconomic indicators and sentiment analysis from news data could provide a more holistic view of the market conditions.')
 
-    # Save the PDF
     os.makedirs('reports', exist_ok=True)
     pdf.output('reports/investment_strategy_analysis_report.pdf')
 
